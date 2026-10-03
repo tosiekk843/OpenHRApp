@@ -42,8 +42,11 @@ Deno.serve(async (req: Request) => {
     .single();
 
   if (profileErr || !callerProfile) return jsonError(403, 'Caller profile not found');
-  if (!['ADMIN', 'HR', 'SUPER_ADMIN'].includes(callerProfile.role)) {
+  if (!['ADMIN', 'HR'].includes(callerProfile.role)) {
     return jsonError(403, 'Only ADMIN or HR can create employees');
+  }
+  if (!callerProfile.organization_id) {
+    return jsonError(403, 'Caller has no organization');
   }
 
   try {
@@ -67,6 +70,9 @@ Deno.serve(async (req: Request) => {
     }
     if (password.length < 8) {
       return jsonError(400, 'Password must be at least 8 characters');
+    }
+    if (!['EMPLOYEE', 'MANAGER', 'HR', 'ADMIN'].includes(role)) {
+      return jsonError(400, 'Invalid employee role');
     }
 
     const orgId = callerProfile.organization_id;

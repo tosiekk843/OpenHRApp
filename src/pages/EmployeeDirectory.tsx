@@ -851,8 +851,6 @@ const EmployeeDirectory: React.FC<EmployeeDirectoryProps> = ({ user, selectedEmp
                     <select className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none focus:ring-4 focus:ring-primary-light" value={formState.role} onChange={e => setFormState({...formState, role: e.target.value as any})}>
                       <option value="EMPLOYEE">Employee</option>
                       <option value="MANAGER">Manager</option>
-                      <option value="TEAM_LEAD">Team Leader</option>
-                      <option value="MANAGEMENT">Management</option>
                       <option value="HR">HR Specialist</option>
                       <option value="ADMIN">Administrator</option>
                     </select>
