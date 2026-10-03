@@ -4,7 +4,7 @@
 
 -- ── Table ──────────────────────────────────────────────────────────────────────
 create table public.contact_submissions (
-  id         uuid primary key default uuid_generate_v4(),
+  id         uuid primary key default extensions.uuid_generate_v4(),
   name       text not null,
   email      text not null,
   subject    text not null,

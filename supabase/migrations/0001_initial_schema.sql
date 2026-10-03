@@ -12,7 +12,7 @@ create extension if not exists "pg_trgm"; -- for text search on names/emails
 -- ORGANIZATIONS (no FK deps — create first)
 -- ============================================================
 create table public.organizations (
-  id          uuid primary key default uuid_generate_v4(),
+  id          uuid primary key default extensions.uuid_generate_v4(),
   name        text not null,
   country     text not null default 'BD',
   address     text,
@@ -65,7 +65,7 @@ create index idx_profiles_employee_id on public.profiles(organization_id, employ
 -- TEAMS
 -- ============================================================
 create table public.teams (
-  id              uuid primary key default uuid_generate_v4(),
+  id              uuid primary key default extensions.uuid_generate_v4(),
   organization_id uuid not null references public.organizations(id) on delete cascade,
   name            text not null,
   department      text,
@@ -84,7 +84,7 @@ alter table public.profiles
 -- SHIFTS
 -- ============================================================
 create table public.shifts (
-  id                    uuid primary key default uuid_generate_v4(),
+  id                    uuid primary key default extensions.uuid_generate_v4(),
   organization_id       uuid not null references public.organizations(id) on delete cascade,
   name                  text not null,
   start_time            time not null,
@@ -109,7 +109,7 @@ alter table public.profiles
 -- ATTENDANCE
 -- ============================================================
 create table public.attendance (
-  id              uuid primary key default uuid_generate_v4(),
+  id              uuid primary key default extensions.uuid_generate_v4(),
   organization_id uuid not null references public.organizations(id) on delete cascade,
   employee_id     text not null,                           -- denormalized ID string (PB pattern)
   employee_name   text,
@@ -137,7 +137,7 @@ create index idx_attendance_date on public.attendance(organization_id, date);
 -- LEAVES
 -- ============================================================
 create table public.leaves (
-  id              uuid primary key default uuid_generate_v4(),
+  id              uuid primary key default extensions.uuid_generate_v4(),
   organization_id uuid not null references public.organizations(id) on delete cascade,
   employee_id     text not null,
   employee_name   text,
@@ -165,7 +165,7 @@ create index idx_leaves_start_date on public.leaves(organization_id, start_date)
 -- ANNOUNCEMENTS
 -- ============================================================
 create table public.announcements (
-  id              uuid primary key default uuid_generate_v4(),
+  id              uuid primary key default extensions.uuid_generate_v4(),
   organization_id uuid not null references public.organizations(id) on delete cascade,
   author_id       uuid references public.profiles(id) on delete set null,
   author_name     text,
@@ -187,7 +187,7 @@ create index idx_announcements_organization_id on public.announcements(organizat
 -- NOTIFICATIONS
 -- ============================================================
 create table public.notifications (
-  id              uuid primary key default uuid_generate_v4(),
+  id              uuid primary key default extensions.uuid_generate_v4(),
   organization_id uuid references public.organizations(id) on delete cascade,
   user_id         uuid references public.profiles(id) on delete cascade,
   type            text not null,
@@ -212,7 +212,7 @@ create index idx_notifications_organization_id on public.notifications(organizat
 -- SETTINGS (key-value per org)
 -- ============================================================
 create table public.settings (
-  id              uuid primary key default uuid_generate_v4(),
+  id              uuid primary key default extensions.uuid_generate_v4(),
   organization_id uuid not null references public.organizations(id) on delete cascade,
   key             text not null,
   value           text,
@@ -227,7 +227,7 @@ create index idx_settings_organization_key on public.settings(organization_id, k
 -- REVIEW CYCLES
 -- ============================================================
 create table public.review_cycles (
-  id                uuid primary key default uuid_generate_v4(),
+  id                uuid primary key default extensions.uuid_generate_v4(),
   organization_id   uuid not null references public.organizations(id) on delete cascade,
   name              text not null,
   cycle_type        text,
@@ -246,7 +246,7 @@ create index idx_review_cycles_organization_id on public.review_cycles(organizat
 -- PERFORMANCE REVIEWS
 -- ============================================================
 create table public.performance_reviews (
-  id                  uuid primary key default uuid_generate_v4(),
+  id                  uuid primary key default extensions.uuid_generate_v4(),
   organization_id     uuid not null references public.organizations(id) on delete cascade,
   cycle_id            uuid references public.review_cycles(id) on delete set null,
   employee_id         text not null,
@@ -288,7 +288,7 @@ create index idx_perf_reviews_employee_id on public.performance_reviews(organiza
 -- UPGRADE REQUESTS
 -- ============================================================
 create table public.upgrade_requests (
-  id                  uuid primary key default uuid_generate_v4(),
+  id                  uuid primary key default extensions.uuid_generate_v4(),
   organization_id     uuid not null references public.organizations(id) on delete cascade,
   request_type        text not null
                       check (request_type in ('DONATION','TRIAL_EXTENSION','AD_SUPPORTED')),
@@ -314,7 +314,7 @@ create index idx_upgrade_requests_status on public.upgrade_requests(status);
 -- BLOG POSTS (public, no org isolation)
 -- ============================================================
 create table public.blog_posts (
-  id          uuid primary key default uuid_generate_v4(),
+  id          uuid primary key default extensions.uuid_generate_v4(),
   author_id   uuid references public.profiles(id) on delete set null,
   author_name text,
   title       text not null,
@@ -336,7 +336,7 @@ create index idx_blog_posts_status on public.blog_posts(status);
 -- TUTORIALS
 -- ============================================================
 create table public.tutorials (
-  id            uuid primary key default uuid_generate_v4(),
+  id            uuid primary key default extensions.uuid_generate_v4(),
   title         text not null,
   content       text,
   excerpt       text,
@@ -360,7 +360,7 @@ create index idx_tutorials_category on public.tutorials(category);
 -- SHOWCASE ORGANIZATIONS (public landing page)
 -- ============================================================
 create table public.showcase_organizations (
-  id            uuid primary key default uuid_generate_v4(),
+  id            uuid primary key default extensions.uuid_generate_v4(),
   name          text not null,
   tagline       text,
   logo          text,
@@ -377,7 +377,7 @@ create table public.showcase_organizations (
 -- SOCIAL LINKS (public footer links)
 -- ============================================================
 create table public.social_links (
-  id            uuid primary key default uuid_generate_v4(),
+  id            uuid primary key default extensions.uuid_generate_v4(),
   platform      text not null,
   url           text not null,
   is_active     boolean default true,
@@ -390,7 +390,7 @@ create table public.social_links (
 -- GUIDE HELP LINKS (in-app help)
 -- ============================================================
 create table public.guide_help_links (
-  id            uuid primary key default uuid_generate_v4(),
+  id            uuid primary key default extensions.uuid_generate_v4(),
   key           text unique not null,
   value         text,
   created       timestamptz not null default now(),
@@ -401,7 +401,7 @@ create table public.guide_help_links (
 -- CONTENT IMAGES (rich text editor uploads)
 -- ============================================================
 create table public.content_images (
-  id          uuid primary key default uuid_generate_v4(),
+  id          uuid primary key default extensions.uuid_generate_v4(),
   image       text not null,                              -- storage path
   alt_text    text,
   uploaded_by text,
@@ -413,7 +413,7 @@ create table public.content_images (
 -- REPORTS QUEUE (bulk email / async jobs)
 -- ============================================================
 create table public.reports_queue (
-  id              uuid primary key default uuid_generate_v4(),
+  id              uuid primary key default extensions.uuid_generate_v4(),
   organization_id uuid references public.organizations(id) on delete cascade,
   type            text,
   status          text default 'PENDING'
