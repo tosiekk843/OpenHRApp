@@ -33,6 +33,12 @@ declare
   sa record;
   new_id uuid;
 begin
+  if coalesce(auth.role(), '') <> 'service_role'
+     and (auth.uid() is null or public.auth_role() not in ('ADMIN','HR','SUPER_ADMIN')) then
+    raise exception 'Only ADMIN, HR, SUPER_ADMIN or service_role may notify super admins'
+      using errcode = '42501';
+  end if;
+
   for sa in
     select id from public.profiles where role = 'SUPER_ADMIN'
   loop
@@ -64,3 +70,8 @@ begin
   return;
 end
 $$;
+
+revoke execute on function public.notify_super_admins(text, text, text, text, text, uuid, text)
+  from public, anon, authenticated;
+grant execute on function public.notify_super_admins(text, text, text, text, text, uuid, text)
+  to authenticated, service_role;

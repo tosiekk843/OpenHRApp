@@ -55,11 +55,34 @@ create policy "profiles_select" on public.profiles for select using (
 );
 create policy "profiles_insert" on public.profiles for insert with check (
   public.is_super_admin()
-  or organization_id = public.auth_org_id()
+  or (
+    organization_id = public.auth_org_id()
+    and public.auth_role() in ('ADMIN','HR')
+    and role <> 'SUPER_ADMIN'
+  )
 );
 create policy "profiles_update" on public.profiles for update using (
   public.is_super_admin()
-  or organization_id = public.auth_org_id()
+  or id = auth.uid()
+  or (
+    organization_id = public.auth_org_id()
+    and public.auth_role() in ('ADMIN','HR')
+    and role <> 'SUPER_ADMIN'
+  )
+)
+with check (
+  public.is_super_admin()
+  or (
+    id = auth.uid()
+    and role = public.auth_role()
+    and organization_id is not distinct from public.auth_org_id()
+  )
+  or (
+    id <> auth.uid()
+    and organization_id = public.auth_org_id()
+    and public.auth_role() in ('ADMIN','HR')
+    and role <> 'SUPER_ADMIN'
+  )
 );
 create policy "profiles_delete" on public.profiles for delete using (
   public.is_super_admin()

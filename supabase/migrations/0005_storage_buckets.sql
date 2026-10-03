@@ -18,26 +18,44 @@ on conflict (id) do nothing;
 create policy "avatars_select" on storage.objects for select using (
   bucket_id = 'avatars' and (
     public.is_super_admin()
-    or (storage.foldername(name))[1] = auth.uid()::text
-    or public.auth_org_id() is not null  -- any authed org member can view avatars
+    or exists (
+      select 1 from public.profiles p
+      where p.id::text = (storage.foldername(objects.name))[1]
+        and p.organization_id = public.auth_org_id()
+    )
   )
 );
 create policy "avatars_insert" on storage.objects for insert with check (
   bucket_id = 'avatars' and auth.uid() is not null and (
-    (storage.foldername(name))[1] = auth.uid()::text
-    or public.auth_role() in ('ADMIN','HR','SUPER_ADMIN')
+    public.is_super_admin()
+    or exists (
+      select 1 from public.profiles p
+      where p.id::text = (storage.foldername(objects.name))[1]
+        and p.organization_id = public.auth_org_id()
+        and (p.id = auth.uid() or public.auth_role() in ('ADMIN','HR'))
+    )
   )
 );
 create policy "avatars_update" on storage.objects for update using (
   bucket_id = 'avatars' and (
-    (storage.foldername(name))[1] = auth.uid()::text
-    or public.auth_role() in ('ADMIN','HR','SUPER_ADMIN')
+    public.is_super_admin()
+    or exists (
+      select 1 from public.profiles p
+      where p.id::text = (storage.foldername(objects.name))[1]
+        and p.organization_id = public.auth_org_id()
+        and (p.id = auth.uid() or public.auth_role() in ('ADMIN','HR'))
+    )
   )
 );
 create policy "avatars_delete" on storage.objects for delete using (
   bucket_id = 'avatars' and (
-    (storage.foldername(name))[1] = auth.uid()::text
-    or public.auth_role() in ('ADMIN','HR','SUPER_ADMIN')
+    public.is_super_admin()
+    or exists (
+      select 1 from public.profiles p
+      where p.id::text = (storage.foldername(objects.name))[1]
+        and p.organization_id = public.auth_org_id()
+        and (p.id = auth.uid() or public.auth_role() in ('ADMIN','HR'))
+    )
   )
 );
 
@@ -62,22 +80,46 @@ create policy "org_logos_delete" on storage.objects for delete using (
 create policy "selfies_select" on storage.objects for select using (
   bucket_id = 'selfies' and (
     public.is_super_admin()
-    or public.auth_role() in ('ADMIN','HR','MANAGER')
-    or (storage.foldername(name))[1] = auth.uid()::text
+    or exists (
+      select 1 from public.attendance a
+      where a.id::text = (storage.foldername(objects.name))[1]
+        and a.organization_id = public.auth_org_id()
+        and (a.employee_id = auth.uid()::text or public.auth_role() in ('ADMIN','HR','MANAGER'))
+    )
   )
 );
 create policy "selfies_insert" on storage.objects for insert with check (
-  bucket_id = 'selfies' and auth.uid() is not null
+  bucket_id = 'selfies' and auth.uid() is not null and (
+    public.is_super_admin()
+    or exists (
+      select 1 from public.attendance a
+      where a.id::text = (storage.foldername(objects.name))[1]
+        and a.organization_id = public.auth_org_id()
+        and (a.employee_id = auth.uid()::text or public.auth_role() in ('ADMIN','HR'))
+    )
+  )
 );
 create policy "selfies_update" on storage.objects for update using (
   bucket_id = 'selfies' and (
-    (storage.foldername(name))[1] = auth.uid()::text
-    or public.auth_role() in ('ADMIN','HR','SUPER_ADMIN')
+    public.is_super_admin()
+    or exists (
+      select 1 from public.attendance a
+      where a.id::text = (storage.foldername(objects.name))[1]
+        and a.organization_id = public.auth_org_id()
+        and (a.employee_id = auth.uid()::text or public.auth_role() in ('ADMIN','HR'))
+    )
   )
 );
 create policy "selfies_delete" on storage.objects for delete using (
-  bucket_id = 'selfies' and
-  public.auth_role() in ('ADMIN','HR','SUPER_ADMIN')
+  bucket_id = 'selfies' and (
+    public.is_super_admin()
+    or exists (
+      select 1 from public.attendance a
+      where a.id::text = (storage.foldername(objects.name))[1]
+        and a.organization_id = public.auth_org_id()
+        and public.auth_role() in ('ADMIN','HR')
+    )
+  )
 );
 
 -- ── content-images (public read, authed write) ───────────────────────────────

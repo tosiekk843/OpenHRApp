@@ -147,9 +147,16 @@ set search_path = public
 as $$
 declare v_deleted bigint;
 begin
+  if p_keep_months is null or p_keep_months < 1 then
+    raise exception 'p_keep_months must be at least 1' using errcode = '22023';
+  end if;
+
   delete from public.audit_logs
   where occurred_at < now() - make_interval(months => p_keep_months);
   get diagnostics v_deleted = row_count;
   return v_deleted;
 end;
 $$;
+
+revoke execute on function public.prune_audit_logs(int) from public, anon, authenticated;
+grant execute on function public.prune_audit_logs(int) to service_role;
